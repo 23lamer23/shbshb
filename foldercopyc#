@@ -1,0 +1,71 @@
+public void Folder_Copy(string kaynak_yol, string hedef_yol)
+        {
+            int sayac = 0;
+            string karakter = @"\";  // bunu yapmamın nedeni heryerde @ işareti koyarak uğraşmak istememem.
+            string[] kaynak_bolumler = kaynak_yol.Split(karakter[0]);   //kaynağı \ işaretine göre ayırarak her elemanı diziye attım.
+            string yeni_dizin_adi = kaynak_bolumler.Last();   //burada yeni dizin adını bi üst satırdaki dizi elemanlarından sonuncusunu kullanarak aldım.
+            
+            var hedef_dizin2 = new DirectoryInfo(hedef_yol + karakter + yeni_dizin_adi); //burada hedefteki dizinin varlığını kontrol etmek için bu nesneyi oluşturdum.
+            if (hedef_dizin2.Exists)  //eğer hedefte aynı isimde dizin varsa yeni bir dizin oluşturmadan bu dizin üzerinden işlemi yürüteceğiz.
+            {
+                hedef_yol = hedef_yol + karakter + yeni_dizin_adi;
+            }
+            else  // yoksa yeni bir dizin oluşturup kaynaktakiyle aynı isimi veriyoruz.
+            {
+                Directory.CreateDirectory(hedef_yol + karakter + yeni_dizin_adi);
+                hedef_yol = hedef_yol + karakter + yeni_dizin_adi; // artık hedef yolumuz yeni dizin.
+            }
+            var Hedef_dizin = new DirectoryInfo(hedef_yol);  // şimdi tekrardan bu nesneyi oluşturup kopyalamak için dosyalarını alacağız.
+
+
+
+
+            var Hedefteki_Dosyalar = Hedef_dizin.GetFiles();   //dosyaları alarak hedefteki dosyalar dizisine atıyoruz.
+            var directoryinfo = new DirectoryInfo(kaynak_yol);   // kaynak yolun da nesnesini oluşturuyoruz.(eğer aynı dosya varsa gerekli işlemi yapmak için.)
+            var Kopyalanacak_Dosyalar = directoryinfo.GetFiles();  //kaynağın dosyalarını alıyoruz.
+            foreach (var dosya in Kopyalanacak_Dosyalar)  // içiçe döngü ile tüm dosyaları kotrol ediyoruz. içtekinde eğer aynı isimde çıkarsa 0 olarak belirlediğimiz sayacı 1 arttırıyoruz ki ona göre üzerine yazma işlemini yapalım.
+            {
+                foreach (var dosya1 in Hedefteki_Dosyalar)
+                {
+                    if ((dosya.Name == dosya1.Name) && checkBox1.Checked) // üzerine yaz işaretliyse o dosyayı siliyoruz.
+                    {
+                        File.Delete(hedef_yol + karakter +dosya1.Name);
+                    }
+                    else if ((dosya.Name == dosya1.Name) && !checkBox1.Checked) // değilse sayacı arttırıyoruz.
+                    {
+                        sayac += 1; 
+                    }
+
+
+                }
+                if (sayac != 0)  // 1. döngüden çıktığımızda eğer sayac 0 değil ise aynı dosya vardır  ve checkbox işaretlenmemiştir. yani kopyalamadan devam ediyoruz.
+                {
+                    sayac = 0;
+                    continue;
+                }
+                else  //sayac 0 ise dosya varsa da checkbox işaretli olduğu için silinmiştir yani kopyalama işlemini yapıyoruz. 
+                {
+                    dosya.CopyTo(hedef_yol + karakter + dosya.Name);
+                    sayac = 0;
+                }
+
+
+            }
+            var Alt_Klasor_kopyalama = new DirectoryInfo(kaynak_yol).GetDirectories();   //burada bir yinelemeli fonk kullanacağız çünkü içiçe giden her klasör için folder_copy fonksiyonunu çağırmamız lazım. bu yüzden alt klasör bilgisini alıyoruz.
+            if (Alt_Klasor_kopyalama == null)
+            {
+                //bişey yapma çünkü zaten dosyaları kopyaladık. klasör yoksa da yinelemeye gerek yoktur.
+            }
+            else  // eğer boş değilse her bir klasör için(item) folder_copy fonksiyonunu birdaha çağırıyoruz. yinelemeli olduğu için, alt klasörü olmayan bir klasöre gidene kadar bu folder_copy işlemi devam eder.
+            {
+
+                foreach (var item in Alt_Klasor_kopyalama)
+                {
+
+                    Folder_Copy(kaynak_yol + karakter + item, hedef_yol);
+
+                }
+
+            }
+
+        }
